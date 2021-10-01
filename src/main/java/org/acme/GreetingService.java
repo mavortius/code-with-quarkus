@@ -1,5 +1,7 @@
 package org.acme;
 
+import io.quarkus.vertx.ConsumeEvent;
+import io.smallrye.common.annotation.Blocking;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -14,5 +16,16 @@ public class GreetingService {
 
   public String getGreeting() {
     return "Hello " + greeting;
+  }
+
+  @ConsumeEvent("greeting")
+  public String consume(String name) {
+    return name.toUpperCase();
+  }
+
+  @Blocking
+  @ConsumeEvent("blocking-consumer")
+  public String consumeBlocking(String message) {
+    return "Processing Blocking I/O: " + message;
   }
 }

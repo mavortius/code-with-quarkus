@@ -1,5 +1,8 @@
 package org.acme;
 
+import io.micrometer.core.annotation.Counted;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tags;
 import io.smallrye.mutiny.Uni;
 import io.vertx.mutiny.core.eventbus.EventBus;
 import io.vertx.mutiny.core.eventbus.Message;
@@ -14,10 +17,12 @@ import javax.ws.rs.core.MediaType;
 public class GreetingResource {
   private final EventBus eventBus;
   private final GreetingService service;
+  private final MeterRegistry meterRegistry;
 
-  public GreetingResource(EventBus eventBus, GreetingService service) {
+  public GreetingResource(EventBus eventBus, GreetingService service, MeterRegistry meterRegistry) {
     this.eventBus = eventBus;
     this.service = service;
+    this.meterRegistry = meterRegistry;
   }
 
   @GET
@@ -25,6 +30,15 @@ public class GreetingResource {
   @Produces(MediaType.TEXT_PLAIN)
   public String hello() {
     return service.getGreeting();
+  }
+
+  @GET
+  @Path("hello/{name}")
+  @Counted
+  @Produces(MediaType.TEXT_PLAIN)
+  public String sayHello(@PathParam("name") String name) {
+    meterRegistry.counter("greeting_counter", Tags.of("name", name)).increment();
+    return "Hello " + name;
   }
 
   @GET
